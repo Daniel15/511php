@@ -15,7 +15,7 @@ class JourneyPlanner {
       'name_sf' => $query,
 
       // Boilerplate junk
-      'coordOutputFormat' => 'WGS84[DD.ddddd]',
+      'coordOutputFormat' => 'WGS84',
       'locationServerActive' => 1,
       'stateless' => 1,
       'type_sf' => 'any'
@@ -48,7 +48,7 @@ class JourneyPlanner {
       'requestID' => 0,
       'calcNumberOfTrips' => 4,
       'coordListOutputFormat' => 'STRING',
-      'coordOutputFormat' => 'WGS84[DD.ddddd]',
+      'coordOutputFormat' => 'WGS84',
       'coordOutputFormatTail' => 0,
       'useRealtime' => 1,
       'locationServerActive' => 1,
@@ -220,10 +220,11 @@ class JourneyPlanner {
   private function parseLegPoint(SimpleXMLElement $point_data) {
     $date = $this->parseAPIDateTime($point_data->st->da, $point_data->st->t);
     return array(
+      'id' => (string)$point_data->r->id,
       'name' => (string)$point_data->n,
       'timestamp' => $date->getTimestamp(),
       'time' => $date->format('H:i'),
-      // TODO: May need IDs and stuff at some point in the future
+      'pos' => $this->parseCoordinates($point_data->r->c)
     );
   }
 
@@ -263,8 +264,8 @@ class JourneyPlanner {
   private function parseCoordinates($raw) {
     $split = explode(',', $raw);
     return array(
-      'lon' => (float)$split[0],
-      'lat' => (float)$split[1],
+      'lon' => ((float)$split[0] / 1000000),
+      'lat' => ((float)$split[1] / 1000000),
     );
   }
 
