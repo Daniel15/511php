@@ -66,7 +66,9 @@ class JourneyPlanner {
     if (!empty($options['time'])) {
       $params['itdTime'] = date('Hi', $options['time']);
       $params['itdDate'] = date('Ymd', $options['time']);
-      // TODO: is_departure_time
+    }
+    if (!empty($options['is_arrival_time'])) {
+      $params['itdTripDateTimeDepArr'] = 'arr'; // Pirate mode activated
     }
 
     $data = $this->doRequest(self::TRIP_URI, $params);
@@ -190,14 +192,17 @@ class JourneyPlanner {
         $id = $passed_stop[0];
         $name = $passed_stop[1];
 
-        // Skip the first one (has no time)
-        if ($passed_stop[2] === '0000-1')
-          continue;
         // Skip the last one
         if ($name === $leg['to']['name'])
           continue;
 
         $date = $this->parseAPIDateTime($passed_stop[2], $passed_stop[3]);
+        // Skip if the date is invalid - The first stop has "0000-1" or "00000"
+        // as the date.
+        if ($date == null) {
+          continue;
+        }
+
         $leg['passed_stops'][] = array(
           'id' => $id,
           'name' => $name,
