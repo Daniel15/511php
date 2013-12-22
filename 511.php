@@ -3,6 +3,7 @@ class JourneyPlanner {
   const BASE_URL = 'http://tripplanner.transit.511.org/ultralite/';
   const STOPFINDER_URI = 'XML_STOPFINDER_REQUEST';
   const TRIP_URI = 'XML_TRIP_REQUEST2';
+  const MAX_ATTEMPTS = 3;
 
   /**
    * Perform a stopfinder request for the specified query
@@ -290,7 +291,21 @@ class JourneyPlanner {
       )
     ));
 
-    $data = file_get_contents($full_url, false, $stream);
-    return simplexml_load_string($data);
+    $attempts = 0;
+    while (true) {
+      try {
+        $data = file_get_contents($full_url, false, $stream);
+        return simplexml_load_string($data);
+      } catch (Exception $e) {
+        $attempts++;
+        if ($attempts === self::MAX_ATTEMPTS) {
+          throw new Exception(
+            'Could not send query to 511.org: ' . $e->getMessage(),
+            0,
+            $e
+            );
+        }
+      }
+    }
   }
 }
